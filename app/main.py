@@ -1,8 +1,8 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import Optional
-
-from app.db import init_db, test_db
+from app.models import Item, ItemType
+from app.db import init_db, test_db, get_connection
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -20,7 +20,10 @@ def root():
     return {"message": "Welcome to LocalSync API","tables" : rows}
 
 
-
+@app.post("/add-item")
+async def add_item(item : Item):
+    conn = get_connection()
+    
 
 # For running directly with: python -m app.main
 if __name__ == "__main__":
