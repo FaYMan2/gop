@@ -1,8 +1,9 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from typing import Optional
+from typing import List
+
+from fastapi import FastAPI
+
 from app.models import Item, ItemType
-from app.db import init_db, test_db, get_connection
+from app.db import init_db, test_db, fetch_items, add_item, delete_item
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -11,21 +12,27 @@ app = FastAPI(
     version="1.0.0"
 )
 
-
-init_db()
+init_db()   
 
 @app.get("/")
 def root():
     rows = test_db()
-    return {"message": "Welcome to LocalSync API","tables" : rows}
+    return {"message": "Welcome to Gop API","tables" : rows}
 
+@app.get("/items", response_model=List[Item])
+def get_items():
+    return fetch_items()
 
-@app.post("/add-item")
-async def add_item(item : Item):
-    conn = get_connection()
-    
+@app.post("/items")
+def add_item_endpoint(item: Item):
+    return add_item(item)
 
-# For running directly with: python -m app.main
+@app.delete("/items/{item_id}")
+def delete_item_endpoint(item_id: str | None):
+    if item_id is None:
+        return {"error": "Item ID is required"}
+    return delete_item(item_id)
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

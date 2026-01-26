@@ -1,14 +1,21 @@
-from pydantic import BaseModel
+from datetime import datetime
 from enum import Enum
+from typing import Optional
+
+from pydantic import BaseModel
 
 
-class ItemType(Enum):
+class ItemType(str, Enum):
     file = "file"
     text = "text"
-    clipboard_item = "clipboard_item"
-    
+    clipboard_item = "clipboard"
+
 
 class Item(BaseModel):
-    item_name : str
-    item_type : ItemType
-    device_name : str
+    id: str
+    device: str
+    type: ItemType
+    name: str
+    content: Optional[str] = None
+    path: Optional[str] = None
+    created_at: Optional[datetime] = None
