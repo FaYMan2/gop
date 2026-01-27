@@ -27,7 +27,7 @@ def add(
     item_type = type.lower()
 
     if item_type == "file":
-        file_path = Path(value)
+        file_path = Path(value).expanduser()
         if not file_path.exists():
             typer.echo(f"File not found: {value}")
             raise typer.Exit(1)
@@ -69,26 +69,34 @@ def list():
 
 
 @app.command()
-def cs():
+def cs(
+    push : bool = typer.Option(True, "--push", help="Push clipboard to sync server")
+):
     """Send clipboard content to the server."""
-    content = pyperclip.paste()
-
-    if not content.strip():
-        typer.echo("Clipboard is empty")
-        raise typer.Exit(1)
-
-    item = {
-        "id": str(uuid.uuid4()),
-        "device": get_device_name(),
-        "type": "clipboard",
-        "name": f"clipboard-{uuid.uuid4().hex[:6]}",
-        "content": content,
-    }
     
-    typer.echo("Clipboard sent:" + str(item))
-    r = requests.post(f"{SERVER}/items", json=item)
-    typer.echo(r.json())
+    if push:
+        content = pyperclip.paste()
 
+        if not content.strip():
+            typer.echo("Clipboard is empty")
+            raise typer.Exit(1)
 
+        item = {
+            "id": str(uuid.uuid4()),
+            "device": get_device_name(),
+            "type": "clipboard",
+            "name": f"clipboard-{uuid.uuid4().hex[:6]}",
+            "content": content,
+        }
+
+        typer.echo("Clipboard sent:" + str(item))
+        r = requests.post(f"{SERVER}/items", json=item)
+        typer.echo(r.json())
+        
+    else:
+        r = requests.get(f"{SERVER}/clipboard")
+        data = r.json()
+        typer.echo("Clipboard received:" + str(data))
+        
 if __name__ == "__main__":
     app()

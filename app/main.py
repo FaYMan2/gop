@@ -3,7 +3,7 @@ from typing import List
 from fastapi import FastAPI
 
 from app.models import Item, ItemType
-from app.db import init_db, test_db, fetch_items, add_item, delete_item
+from app.db import db_service
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -12,26 +12,35 @@ app = FastAPI(
     version="1.0.0"
 )
 
-init_db()   
+db_service.init_db()   
 
 @app.get("/")
 def root():
-    rows = test_db()
+    rows = db_service.test_db()
     return {"message": "Welcome to Gop API","tables" : rows}
 
 @app.get("/items", response_model=List[Item])
 def get_items():
-    return fetch_items()
+    return db_service.fetch_items()
 
 @app.post("/items")
 def add_item_endpoint(item: Item):
-    return add_item(item)
+    if item.type == ItemType.clipboard_item:
+        return db_service.update_clipboard_item(item)
+    return db_service.add_item(item)
+
+@app.get("/clipboard", response_model=Item | None)
+def get_clipboard_item():
+    clipboard = db_service.fetch_clipboard_item()
+    if clipboard:
+        return Item(**clipboard[0])
+    return None
 
 @app.delete("/items/{item_id}")
 def delete_item_endpoint(item_id: str | None):
     if item_id is None:
         return {"error": "Item ID is required"}
-    return delete_item(item_id)
+    return db_service.delete_item(item_id)
 
 if __name__ == "__main__":
     import uvicorn
