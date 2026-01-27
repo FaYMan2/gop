@@ -70,10 +70,10 @@ def list():
 
 @app.command()
 def cs(
-    push : bool = typer.Option(True, "--push", help="Push clipboard to sync server")
+    push : bool = typer.Option(False, "--push", help="Push clipboard to sync server")
 ):
     """Send clipboard content to the server."""
-    
+    print("Clipboard sync:", "push" if push else "pull")
     if push:
         content = pyperclip.paste()
 
@@ -92,11 +92,16 @@ def cs(
         typer.echo("Clipboard sent:" + str(item))
         r = requests.post(f"{SERVER}/items", json=item)
         typer.echo(r.json())
-        
+   
     else:
         r = requests.get(f"{SERVER}/clipboard")
         data = r.json()
-        typer.echo("Clipboard received:" + str(data))
-        
+        if data and 'content' in data and data['content'].strip():
+            pyperclip.copy(data['content'])
+            typer.echo("Clipboard updated.")
+        else:
+            typer.echo("No clipboard content available from server.")
+            typer.echo("Clipboard received:" + str(data))
+
 if __name__ == "__main__":
     app()
