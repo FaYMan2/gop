@@ -1,18 +1,32 @@
 from typing import List
 
 from fastapi import FastAPI
-
+from contextlib import asynccontextmanager
 from app.models import Item, ItemType
 from app.db import db_service
+from app.mdns import register_service
 
 # Initialize FastAPI app
+@asynccontextmanager
+async def lifespan(app : FastAPI):
+    print("Starting up...")
+    db_service.init_db()
+    azc, info = await register_service()
+    app.state.azc = azc
+    app.state.zeroconf_info = info
+    print(f"Service {info.name} registered, IP: {info.parsed_addresses()[0]}:{info.port}")
+    yield
+    print("Shutting down...")
+    azc = app.state.azc
+    await azc.async_unregister_all_services()
+    await azc.async_close()
+        
 app = FastAPI(
     title="LocalSync API",
     description="A local sync service with SQLite backend",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
-
-db_service.init_db()   
 
 @app.get("/")
 def root():

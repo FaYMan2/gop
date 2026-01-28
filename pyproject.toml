@@ -10,4 +10,5 @@ dependencies = [
     "pyperclip>=1.11.0",
     "requests>=2.32.5",
     "uvicorn>=0.40.0",
+    "zeroconf>=0.148.0",
 ]

@@ -11,3 +11,5 @@ else:
 
 BASE.mkdir(exist_ok=True)
 DB_PATH = BASE / "sync.db"
+
+SERVER_NAME = "suvarna-local-sync"
