@@ -122,6 +122,7 @@ class db_service:
                 )
 
             conn.commit()
+        return item
 
     @classmethod
     def fetch_clipboard_item(cls):

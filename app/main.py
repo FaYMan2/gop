@@ -135,7 +135,7 @@ async def download_item(item_id: str):
     )
 
 @app.websocket("/ws")
-async def websocker_endpoint(websocket: websockets.WebSocket):
+async def websocket_endpoint(websocket: websockets.WebSocket):
     await connectionManager.connect(websocket)
     try:
         while True:

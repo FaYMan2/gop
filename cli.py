@@ -4,16 +4,16 @@ import os
 import uuid
 from pathlib import Path
 import pyperclip
-import platform
+from utils import get_device_name, get_config_path
+import tomllib
 
 app = typer.Typer()
-SERVER = "http://127.0.0.1:8000"
+config_path = get_config_path()
+f = open(config_path, "rb")
+config = tomllib.load(f)
+SERVER = config.get("server", {}).get("server_domain" , "")
+f.close()
 
-def get_device_name():
-    try:
-        return platform.node()
-    except AttributeError:
-        return os.environ.get("COMPUTERNAME", "unknown-device")
 
 @app.command()
 def add(

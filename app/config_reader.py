@@ -15,7 +15,7 @@ class Config:
 
     @property
     def poll_interval_seconds(self):
-        return self.config.get("client", {}).get("poll_iterval_seconds", 5)
+        return self.config.get("client", {}).get("poll_interval_seconds", 5)
 
     @property
     def db_name(self):
