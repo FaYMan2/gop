@@ -136,4 +136,19 @@ class db_service:
                 """
             ).fetchall()
             return [dict(row) for row in rows ] if rows else None
+        
+    @classmethod
+    def fetch_item_by_id(cls, item_id: str):
+        """ Fetch an item by its ID """
+        with cls.get_connection() as conn:
+            conn.row_factory = sqlite3.Row
+            row = conn.execute(
+                """
+                SELECT id, device, type, name, content, path, created_at
+                FROM items
+                WHERE id = ?
+                """,
+                (item_id,)
+            ).fetchone()
+            return dict(row) if row else None
             
