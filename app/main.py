@@ -1,12 +1,16 @@
 from typing import List
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 from app.models import Item, ItemType
 from app.db import db_service
 from app.mdns import register_service
-
 # Initialize FastAPI app
+
+templates = Jinja2Templates(directory="app/templates")
+
 @asynccontextmanager
 async def lifespan(app : FastAPI):
     print("Starting up...")
@@ -23,15 +27,16 @@ async def lifespan(app : FastAPI):
         
 app = FastAPI(
     title="LocalSync API",
-    description="A local sync service with SQLite backend",
-    version="1.0.0",
     lifespan=lifespan
 )
 
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
 @app.get("/")
-def root():
-    rows = db_service.test_db()
-    return {"message": "Welcome to Gop API","tables" : rows}
+async def root(request : Request):
+    items = db_service.fetch_items()
+    print(items)
+    return templates.TemplateResponse(name="items.html", request=request, context={"items": items})
 
 @app.get("/items", response_model=List[Item])
 def get_items():

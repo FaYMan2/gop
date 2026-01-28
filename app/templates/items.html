@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Your Items</h2>
+
+<ul>
+  {% for item in items %}
+    {% include "partials/item_row.html" %}
+  {% endfor %}
+</ul>
+{% endblock %}

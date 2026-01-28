@@ -1,0 +1,13 @@
+body {
+  font-family: sans-serif;
+  padding: 2rem;
+}
+
+button {
+  margin-left: 10px;
+}
+
+progress {
+  width: 200px;
+  margin-left: 10px;
+}

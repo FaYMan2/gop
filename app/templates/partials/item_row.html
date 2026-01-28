@@ -1,0 +1,18 @@
+<li>
+  <strong>{{ item.name }}</strong>
+
+  {% if item.type == "file" %}
+    <button onclick="downloadWithProgress('{{ item.id }}', '{{ item.name }}')">
+      Download
+    </button>
+    <progress id="progress-{{ item.id }}" value="0" max="100"></progress>
+
+  {% else %}
+    <button onclick='copyText({{ item.content | tojson }})'>
+      Copy
+    </button>
+    <button onclick='readText({{ item.content | tojson }})'>
+      Read
+    </button>
+  {% endif %}
+</li>
