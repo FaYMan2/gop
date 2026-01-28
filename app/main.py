@@ -1,6 +1,7 @@
 from typing import List
 
 from fastapi import FastAPI, Request, HTTPException, status
+from fastapi import websockets, WebSocketDisconnect
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -9,6 +10,7 @@ from app.models import Item, ItemType
 from app.db import db_service
 from app.mdns import register_service
 from pathlib import Path
+from app.socket import wsConnectionManager
 
 templates = Jinja2Templates(directory="app/templates")
 
@@ -38,7 +40,7 @@ app = FastAPI(
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
-
+connectionManager = wsConnectionManager()
 
 # Web UI
 @app.get("/", response_class=HTMLResponse)
@@ -132,7 +134,30 @@ async def download_item(item_id: str):
         media_type="application/octet-stream"
     )
 
-
+@app.websocket("/ws")
+async def websocker_endpoint(websocket: websockets.WebSocket):
+    await connectionManager.connect(websocket)
+    try:
+        while True:
+            data = await websocket.receive_json()
+            if data["type"] == ItemType.clipboard_item.value:
+                db_service.update_clipboard_item(
+                    Item(
+                        id="clipboard",
+                        device=data.get("device", "unknown"),
+                        type=ItemType.clipboard_item,
+                        name="clipboard",
+                        content=data["content"]
+                    )
+                )
+                await connectionManager.broadcast({
+                    "event" : "clipboard_update",
+                    "content" : data["content"]
+                })
+                
+    except WebSocketDisconnect:
+        connectionManager.disconnect(websocket)
+            
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 import platform
+from app.config_reader import config
 
 # Cross-platform database path
 if platform.system() == "Windows":
@@ -10,6 +11,6 @@ else:
     BASE = Path.home() / ".gop"
 
 BASE.mkdir(exist_ok=True)
-DB_PATH = BASE / "sync.db"
+DB_PATH = BASE / config.db_name
 
-SERVER_NAME = "suvarna-local-sync"
+SERVER_NAME = config.server_domain
