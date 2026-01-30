@@ -134,7 +134,7 @@ async def download_item(item_id: str):
         media_type="application/octet-stream"
     )
 
-@app.websocket("/ws")
+@app.websocket("/live")
 async def websocket_endpoint(websocket: websockets.WebSocket):
     await connectionManager.connect(websocket)
     try:
