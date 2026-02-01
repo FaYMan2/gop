@@ -2,7 +2,7 @@
 import sqlite3
 from app.models import Item
 from app.constants import DB_PATH
-
+import datetime 
 class db_service:
     @staticmethod
     def get_connection():
@@ -59,7 +59,7 @@ class db_service:
                     item.name,
                     item.content,
                     item.path,
-                    item.created_at,
+                    datetime.datetime.now(),
                 )
             )
             conn.commit()
@@ -123,21 +123,7 @@ class db_service:
 
             conn.commit()
         return item
-
-    @classmethod
-    def fetch_clipboard_item(cls):
-        """Fetch the clipboard item from the db"""
-        with cls.get_connection() as conn:
-            conn.row_factory = sqlite3.Row
-            rows = conn.execute(
-                """
-                SELECT id, device, type, name, content, path, created_at
-                FROM items
-                WHERE type = "clipboard"
-                """
-            ).fetchall()
-            return [dict(row) for row in rows ] if rows else None
-        
+    
     @classmethod
     def fetch_item_by_id(cls, item_id: str):
         """ Fetch an item by its ID """
@@ -152,4 +138,41 @@ class db_service:
                 (item_id,)
             ).fetchone()
             return dict(row) if row else None
+    
+    @classmethod
+    def fetch_clipboard_items(cls, limit: int = 20):
+        """Fetch the latest clipboard items (default: top 20)."""
+        with cls.get_connection() as conn:
+            conn.row_factory = sqlite3.Row
+            rows = conn.execute(
+                """
+                SELECT id, device, type, name, content, path, created_at
+                FROM items
+                WHERE type = ?
+                ORDER BY created_at DESC
+                LIMIT ?
+                """,
+                ("clipboard", limit)
+            ).fetchall()
+
+            return [dict(row) for row in rows]
+
+    @classmethod
+    def fetch_latest_clipboard(cls):
+        """Fetch the most recent clipboard item."""
+        with cls.get_connection() as conn:
+            conn.row_factory = sqlite3.Row
+            row = conn.execute(
+                """
+                SELECT id, device, type, name, content, path, created_at
+                FROM items
+                WHERE type = ?
+                ORDER BY created_at DESC
+                LIMIT 1
+                """,
+                ("clipboard",)
+            ).fetchone()
+
+            return dict(row) if row else None
+
             

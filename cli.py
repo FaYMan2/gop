@@ -94,7 +94,7 @@ def cs(
         typer.echo(r.json())
    
     else:
-        r = requests.get(f"{SERVER}/clipboard")
+        r = requests.get(f"{SERVER}/clipboard/latest")
         data = r.json()
         if data and 'content' in data and data['content'].strip():
             pyperclip.copy(data['content'])

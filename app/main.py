@@ -1,4 +1,5 @@
 from typing import List
+import uuid
 
 from fastapi import FastAPI, Request, HTTPException, status
 from fastapi import websockets, WebSocketDisconnect
@@ -68,7 +69,7 @@ def add_item_endpoint(item: Item):
 
 @app.get("/clipboard", response_model=Item, status_code=status.HTTP_200_OK)
 def get_clipboard_item():
-    clipboard = db_service.fetch_clipboard_item()
+    clipboard = db_service.fetch_clipboard_items(20)
 
     if not clipboard:
         raise HTTPException(
@@ -78,6 +79,15 @@ def get_clipboard_item():
 
     return Item(**clipboard[0])
 
+@app.get("/clipboard/latest", response_model=Item, status_code=status.HTTP_200_OK)
+def get_latest_clipboard_item():
+    latest_clipboard = db_service.fetch_latest_clipboard()
+    if not latest_clipboard:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No clipboard item found"
+        )
+    return Item(**latest_clipboard)
 
 @app.delete("/items/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_item_endpoint(item_id: str):
@@ -141,9 +151,9 @@ async def websocket_endpoint(websocket: websockets.WebSocket):
         while True:
             data = await websocket.receive_json()
             if data["type"] == ItemType.clipboard_item.value:
-                db_service.update_clipboard_item(
+                db_service.add_item(
                     Item(
-                        id="clipboard",
+                        id=f"clipboard-{data.get('device', 'unknown')}-{str(uuid.uuid4())}",
                         device=data.get("device", "unknown"),
                         type=ItemType.clipboard_item,
                         name="clipboard",
